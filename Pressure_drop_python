@@ -1,0 +1,41 @@
+# A very simple Flask Hello World app for you to get started with...
+from flask import Flask, render_template, request
+import numpy as np
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index2.html')
+
+@app.route('/', methods=['POST', 'GET'])
+def answer():
+    if request.method == 'POST':
+        material = request.form['pipes']
+        length = float(request.form['length'])
+        Pipe_ID = float(request.form['Pipe ID'])/1000
+        Flow_rate = float(request.form['Flow rate'])/3600
+        Area = np.pi/4*(Pipe_ID**2)
+        roh = 1000
+        mu = 1*10**-3
+        vel = (Flow_rate/roh)/(Area)
+        Reynolds = (roh*vel*Pipe_ID)/(mu)
+
+        if material == "Plastic (PVC)":
+            roughness = 0.0015*10**-3
+        elif material == "Stainless Steel":
+            roughness = 0.002*10**-3
+        else:
+            roughness = 0.046*10**-3
+
+        if Reynolds < 2300:
+            f = Reynolds/64
+        else:
+            f = (-1/(1.8*np.log((6.9/Reynolds)+((roughness/Pipe_ID)/3.7)**1.11)))**2
+
+        hf = f*(length/Pipe_ID)*(vel**2/2*9.81)
+
+        result = str("{:.2f}".format(hf))
+    else:
+        result = None
+    return render_template('index2.html', result=result)
